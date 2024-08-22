@@ -1,24 +1,59 @@
 pipeline {
     agent any
+
+    environment {
+        SERVER_IP = '139.59.36.218'
+        SERVER_PORT = '5000'
+        SSH_USER = 'root'
+        APP_DIR = '/root/node/app.js'
+    }
+
     stages {
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/deepakswins/Node1.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
         stage('Build') {
             steps {
-                echo 'Building....'
+                sh 'npm run build'
             }
         }
-        stage('Test') {
-            steps {
-                echo 'Testing....'
-            }
-        }
+
         stage('Deploy') {
-            when {
-                branch 'staging'
-            }
             steps {
-                echo 'Deploying...'
-                
+                script {
+                    def remoteCommand = """
+                    cd ${APP_DIR}
+                    git pull origin main
+                    npm install
+                    pm2 restart all
+                    """
+                    sh "ssh ${SSH_USER}@${SERVER_IP} '${remoteCommand}'"
+                }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and Deployment successful!'
+        }
+        failure {
+            echo 'Build or Deployment failed.'
         }
     }
 }
