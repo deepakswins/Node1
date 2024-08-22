@@ -37,12 +37,12 @@ pipeline {
             steps {
                 script {
                     def remoteCommand = """
-                    cd ${APP_DIR}
+                    cd ${/root/node/app.js}
                     git pull origin main
                     npm install
                     pm2 restart all
                     """
-                    sh "ssh ${SSH_USER}@${SERVER_IP} '${remoteCommand}'"
+                    sh "ssh ${root}@ ${139.59.36.218} '${remoteCommand}'"
                 }
             }
         }
